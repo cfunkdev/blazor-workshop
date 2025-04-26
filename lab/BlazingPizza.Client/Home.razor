@@ -1,6 +1,7 @@
 ﻿@page "/"
 @rendermode InteractiveWebAssembly
 @inject IRepository PizzaStore
+@inject NavigationManager NavigationManager
 
 
 
@@ -100,8 +101,9 @@
 
     async Task PlaceOrder()
     {
-        await PizzaStore.PlaceOrder( order );
+        var newOrderId = await PizzaStore.PlaceOrder( order );
         order = new Order();
+        NavigationManager.NavigateTo( $"myorders/{newOrderId}" );
     }
 
 }    

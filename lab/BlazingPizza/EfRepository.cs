@@ -50,7 +50,7 @@ public class EfRepository : IRepository
 		return await _Context.Toppings.OrderBy(t => t.Name).ToListAsync();
 	}
 
-    public Task PlaceOrder(Order order)
+    public Task<int> PlaceOrder(Order order)
     {
         throw new NotImplementedException();
     }
