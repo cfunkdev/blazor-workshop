@@ -138,6 +138,12 @@ public static class SeedData
                     Name = "Blue cheese",
                     Price = 2.50m,
             },
+            new Topping()
+            {
+                Id=23,
+                Name = "Pineapple",
+                Price = 5.00m,
+            }
         };
 
         var specials = new PizzaSpecial[]
