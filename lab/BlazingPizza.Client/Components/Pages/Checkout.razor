@@ -1,0 +1,50 @@
+﻿@page "/checkout"
+@rendermode InteractiveWebAssembly
+@inject IRepository Repository
+@inject OrderState OrderState
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Blazing Pizza - Checkout</PageTitle>
+
+<div class="main">
+    <EditForm Model="OrderState.Order.DeliveryAddress" OnValidSubmit="PlaceOrder">
+        <div class="checkout-cols">
+            <div class="checkout-order-details">
+                <h4>Review Order</h4>
+                <OrderReview Order="OrderState.Order" />
+            </div>
+            <div class="checkout-delivery-address">
+                <h4>Deliver to...</h4>
+                <AddressEditor Address="OrderState.Order.DeliveryAddress" />
+            </div>
+        </div>
+
+        <button type="submit" class="checkout-button btn btn-warning">
+            Place order
+        </button>
+        <DataAnnotationsValidator />
+    </EditForm>
+</div>
+
+@code {
+    public EditContext EditContext { get; set; } = new EditContext( new Order() );
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if(first)
+        {
+            EditContext = new EditContext( OrderState.Order.DeliveryAddress );
+            EditContext.SetFieldCssClassProvider( new BootstrapFieldClassProvider() );
+        }
+    }
+
+    async Task PlaceOrder()
+    {
+        isSubmitting = true;
+
+        var newOrderId = await Repository.PlaceOrder( OrderState.Order );
+        OrderState.ResetOrder();
+        NavigationManager.NavigateTo( $"myorders/{newOrderId}" );
+    }
+}

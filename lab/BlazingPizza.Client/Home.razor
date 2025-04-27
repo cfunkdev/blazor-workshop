@@ -1,6 +1,7 @@
 ﻿@page "/"
 @rendermode InteractiveWebAssembly
 @inject IRepository PizzaStore
+@inject OrderState OrderState
 @inject NavigationManager NavigationManager
 
 
@@ -11,7 +12,7 @@
         {
             @foreach (var special in specials)
             {
-                <li @onclick="@(() => ShowConfigurePizzaDialog(special))" style="background-image: url('@special.ImageUrl')">
+                <li @onclick="@(() => OrderState.ShowConfigurePizzaDialog(special))" style="background-image: url('@special.ImageUrl')">
                     <div class="pizza-info">
                         <span class="title">@special.Name</span>
                         @special.Description
@@ -23,14 +24,14 @@
     </ul>
 </div>
 <div class="sidebar">
-    @if (order.Pizzas.Any())
+    @if (OrderState.Order.Pizzas.Any())
     {
         <div class="order-contents">
             <h2>Your order</h2>
 
-            @foreach (var configuredPizza in order.Pizzas)
+            @foreach (var configuredPizza in OrderState.Order.Pizzas)
             {
-                <ConfiguredPizzaItem Pizza="configuredPizza" OnRemoved="@(() => RemoveConfiguredPizza(configuredPizza))" />
+                <ConfiguredPizzaItem Pizza="configuredPizza" OnRemoved="@(() => OrderState.RemoveConfiguredPizza(configuredPizza))" />
             }
         </div>
     }
@@ -39,71 +40,26 @@
         <div class="empty-cart">Choose a pizza<br /> to get started</div>
     }
 
-    <div class="order-total @(order.Pizzas.Any() ? "" : "hidden")">
+    <div class="order-total @(OrderState.Order.Pizzas.Any() ? "" : "hidden")">
         Total:
-        <span class="total-price">@order.GetFormattedTotalPrice()</span>
-        <button class="btn btn-warning" disabled="@(order.Pizzas.Count == 0)" @onclick="PlaceOrder">
+        <span class="total-price">@OrderState.Order.GetFormattedTotalPrice()</span>
+        <a href="checkout" class="@(OrderState.Order.Pizzas.Count == 0 ? "btn btn-warning disabled" : "btn btn-warning")">
             Order >  
-        </button>
+        </a>
     </div>
 </div>
 
-@if (showingConfigureDialog)
+@if (OrderState.ShowingConfigureDialog)
 {
-    <ConfigurePizzaDialog Pizza="configuringPizza" OnCancel="CancelConfigurePizzaDialog" OnConfirm="ConfirmConfigurePizzaDialog" />
+    <ConfigurePizzaDialog Pizza="OrderState.ConfiguringPizza" OnCancel="OrderState.CancelConfigurePizzaDialog" OnConfirm="OrderState.ConfirmConfigurePizzaDialog" />
 }
 
 @code {
     List<PizzaSpecial>? specials = null;
-    Pizza? configuringPizza;
-    bool showingConfigureDialog;
-    Order order = new Order();
 
     protected override async Task OnInitializedAsync()
     {
         specials = await PizzaStore.GetSpecials();
-    }
-
-    void CancelConfigurePizzaDialog()
-    {
-        configuringPizza = null;
-        showingConfigureDialog = false;
-    }
-
-    void ConfirmConfigurePizzaDialog()
-    {
-        if(configuringPizza is not null)
-        {
-            order.Pizzas.Add( configuringPizza );
-            configuringPizza = null;
-        }
-
-        showingConfigureDialog = false;
-    }
-
-    void ShowConfigurePizzaDialog(PizzaSpecial special)
-    {
-        configuringPizza = new Pizza()
-        {
-            Special = special,
-            SpecialId = special.Id,
-            Size = Pizza.DefaultSize,
-            Toppings = new List<PizzaTopping>(),
-        };
-
-        showingConfigureDialog = true;
-    }
-
-    void RemoveConfiguredPizza(Pizza pizza)
-    {
-        order.Pizzas.Remove( pizza );
-    }
-
-    async Task PlaceOrder()
-    {
-        var newOrderId = await PizzaStore.PlaceOrder( order );
-        order = new Order();
-        NavigationManager.NavigateTo( $"myorders/{newOrderId}" );
     }
 
 }    
