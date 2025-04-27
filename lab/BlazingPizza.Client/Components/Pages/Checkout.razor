@@ -41,8 +41,6 @@
 
     async Task PlaceOrder()
     {
-        isSubmitting = true;
-
         var newOrderId = await Repository.PlaceOrder( OrderState.Order );
         OrderState.ResetOrder();
         NavigationManager.NavigateTo( $"myorders/{newOrderId}" );
